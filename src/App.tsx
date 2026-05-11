@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
 import { me as apiMe, logout as apiLogout, getToken, setToken } from "./lib/clientAuth";
+import AddPost from "./pages/AddPost";
 
 function RequireAuth({ user, children }: { user: any | null | undefined; children: JSX.Element }) {
   if (user === undefined) return <div>Checking authentication…</div>;
@@ -96,6 +97,8 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
         <Link to="/user" className="hover:underline">User</Link>
         <span className="text-muted-foreground">|</span>
         <Link to="/admin" className="hover:underline">Admin</Link>
+        <span className="text-muted-foreground">|</span>
+        <Link to="/addPost" className="hover:underline">Add Post</Link>
         {user && (
           <span className="ml-3 flex items-center gap-2 text-sm">
             <span>Logged in as <strong>{user.username}</strong></span>
@@ -111,6 +114,11 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
           <Route path="/" element={<Home />} />
           <Route path="/register" element={user ? <Navigate to="/user" replace /> : <Register onAuth={handleAuth} />} />
           <Route path="/login" element={user ? <Navigate to="/user" replace /> : <Login onAuth={handleAuth} />} />
+          <Route path="/addPost" element={
+            <RequireAuth user={user}>
+              <AddPost user={user} onLogout={handleLogout} />
+            </RequireAuth>
+          }/>
           <Route path="/user" element={
             <RequireAuth user={user}>
               <UserPage user={user} onLogout={handleLogout} />
