@@ -8,7 +8,8 @@ import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
 import { me as apiMe, logout as apiLogout, getToken, setToken } from "./lib/clientAuth";
 import AddPost from "./pages/AddPost";
-import Posts from "./pages/Posts";
+import PostPage from "./pages/PostPage";
+import PostsPage from "./pages/PostsPage";
 
 function RequireAuth({ user, children }: { user: any | null | undefined; children: JSX.Element }) {
   if (user === undefined) return <div>Checking authentication…</div>;
@@ -119,7 +120,7 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
           <Route path="/" element={<Home />} />
           <Route path="/register" element={user ? <Navigate to="/user" replace /> : <Register onAuth={handleAuth} />} />
           <Route path="/login" element={user ? <Navigate to="/user" replace /> : <Login onAuth={handleAuth} />} />
-          <Route path="/posts" element={<Posts />}/>
+          <Route path="/posts" element={<PostsPage />} />
           <Route path="/addPost" element={
             <RequireAuth user={user}>
               <AddPost user={user} onLogout={handleLogout} />
