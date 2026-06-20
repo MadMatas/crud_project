@@ -1,7 +1,7 @@
 import { useEffect, useState, type JSX } from "react";
 // @ts-ignore
 import "./index.css";
-import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import UserPage from "./pages/UserPage";
@@ -33,23 +33,30 @@ function Home() {
   );
 }
 
+// Wrapper that pulls :id from the URL and passes it to PostPage
+function PostPageWrapper({ user }: { user: any }) {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  return (
+    <PostPage
+      postId={Number(id)}
+      currentUser={user}
+      onBack={() => navigate("/posts")}
+    />
+  );
+}
+
 export function App() {
-  const [user, setUser] = useState<any | null | undefined>(undefined); // undefined = loading
+  const [user, setUser] = useState<any | null | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
       const token = getToken();
-      if (!token) {
-        setUser(null);
-        return;
-      }
+      if (!token) { setUser(null); return; }
       try {
         const res = await apiMe();
         if (res.ok) setUser(res.data?.user ?? null);
-        else {
-          setUser(null);
-          localStorage.removeItem("token");
-        }
+        else { setUser(null); localStorage.removeItem("token"); }
       } catch (e) {
         setUser(null);
       }
@@ -67,18 +74,13 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
   const navigate = useNavigate();
 
   const handleAuth = (userData: any, token: string) => {
-    try {
-      setToken(token);
-    } catch (e) { }
+    try { setToken(token); } catch (e) {}
     setUser(userData);
     navigate("/user");
   };
 
   const handleLogout = () => {
-    try {
-      apiLogout();
-      localStorage.removeItem("token");
-    } catch (e) { }
+    try { apiLogout(); localStorage.removeItem("token"); } catch (e) {}
     setUser(null);
     navigate("/");
   };
@@ -103,8 +105,6 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
         <Link to="/addPost" className="hover:underline">Add Post</Link>
         <span className="text-muted-foreground">|</span>
         <Link to="/posts" className="hover:underline">Posts</Link>
-
-
         {user && (
           <span className="ml-3 flex items-center gap-2 text-sm">
             <span>Logged in as <strong>{user.username}</strong></span>
@@ -120,12 +120,18 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
           <Route path="/" element={<Home />} />
           <Route path="/register" element={user ? <Navigate to="/user" replace /> : <Register onAuth={handleAuth} />} />
           <Route path="/login" element={user ? <Navigate to="/user" replace /> : <Login onAuth={handleAuth} />} />
-          <Route path="/posts" element={<PostsPage />} />
+          <Route path="/posts" element={
+            <PostsPage
+              onNewPost={() => navigate("/addPost")}
+              onPostClick={(id: number) => navigate(`/posts/${id}`)}
+            />
+          } />
+          <Route path="/posts/:id" element={<PostPageWrapper user={user} />} />
           <Route path="/addPost" element={
             <RequireAuth user={user}>
-              <AddPost user={user} onLogout={handleLogout} />
+              <AddPost user={user} onBack={() => navigate("/posts")} onPublished={() => navigate("/posts")} />
             </RequireAuth>
-          }/>
+          } />
           <Route path="/user" element={
             <RequireAuth user={user}>
               <UserPage user={user} onLogout={handleLogout} />

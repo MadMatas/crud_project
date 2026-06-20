@@ -6,18 +6,22 @@ import { adminHandler } from "./api/admin";
 
 const server = serve({
   routes: {
-    "/api/auth/*": async (req: Request) => await authHandler(req),
-    "/api/admin/*": async (req: Request) => await adminHandler(req),
-    "/api/users/*": async (req: Request) => await usersHandler(req),
-    "/api/posts/*": async (req: Request) => await (await import("./api/posts")).postsHandler(req),
+    "/api/auth/*": (req: Request) => authHandler(req),
+    "/api/admin/*": (req: Request) => adminHandler(req),
+    "/api/users/*": (req: Request) => usersHandler(req),
+    // exact match for /api/posts (list + create)
+    "/api/posts": async (req: Request) =>
+      (await import("./api/posts")).postsHandler(req),
+    // wildcard for /api/posts/:id and nested routes
+    "/api/posts/*": async (req: Request) =>
+      (await import("./api/posts")).postsHandler(req),
+    // exact match for /api/comments/:id (delete)
+    "/api/comments/*": async (req: Request) =>
+      (await import("./api/posts")).postsHandler(req),
     "/*": index,
   },
-
   development: process.env.NODE_ENV !== "production" && {
-    // Enable browser hot reloading in development
     hmr: true,
-
-    // Echo console logs from the browser to the server
     console: true,
   },
 });
