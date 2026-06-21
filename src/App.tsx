@@ -10,6 +10,7 @@ import { me as apiMe, logout as apiLogout, getToken, setToken } from "./lib/clie
 import AddPost from "./pages/AddPost";
 import PostPage from "./pages/PostPage";
 import PostsPage from "./pages/PostsPage";
+import MyPostsPage from "./pages/MyPostsPage";
 
 function RequireAuth({ user, children }: { user: any | null | undefined; children: JSX.Element }) {
   if (user === undefined) return <div>Checking authentication…</div>;
@@ -106,6 +107,12 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
         <span className="text-muted-foreground">|</span>
         <Link to="/posts" className="hover:underline">Posts</Link>
         {user && (
+          <>
+            <span className="text-muted-foreground">|</span>
+            <Link to="/my-posts" className="hover:underline">My Posts</Link>
+          </>
+        )}
+        {user && (
           <span className="ml-3 flex items-center gap-2 text-sm">
             <span>Logged in as <strong>{user.username}</strong></span>
             <button onClick={handleLogout} className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm">Logout</button>
@@ -127,6 +134,11 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
             />
           } />
           <Route path="/posts/:id" element={<PostPageWrapper user={user} />} />
+          <Route path="/my-posts" element={
+            <RequireAuth user={user}>
+              <MyPostsPage user={user} onPostClick={(id: number) => navigate(`/posts/${id}`)} />
+            </RequireAuth>
+          } />
           <Route path="/addPost" element={
             <RequireAuth user={user}>
               <AddPost user={user} onBack={() => navigate("/posts")} onPublished={() => navigate("/posts")} />
@@ -140,7 +152,7 @@ function AppInner({ user, setUser }: { user: any | null | undefined; setUser: (u
           <Route path="/admin" element={
             <RequireAuth user={user}>
               <RequireAdmin user={user}>
-                <AdminPage user={user} onLogout={handleLogout} />
+                <AdminPage user={user} onLogout={handleLogout} onViewPost={(id: number) => navigate(`/posts/${id}`)} />
               </RequireAdmin>
             </RequireAuth>
           } />
